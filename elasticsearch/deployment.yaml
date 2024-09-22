@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: elasticssearch  # Set the desired namespace here
+  labels:
+    app: elasticsearch
+  annotations:
+    esMajorVersion: "7"  # Set your desired version here
+spec:
+  serviceName: elasticsearch-service  # Replace with your service name
+  selector:
+    matchLabels:
+      app: elasticsearch
+  replicas: 3
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      initContainers:
+        - name: configure-sysctl
+          securityContext:
+            runAsUser: 0
+            privileged: true
+          image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0  # Set your image here
+          command: ["sysctl", "-w", "vm.max_map_count=262144"]
+          resources:
+            limits:
+              cpu: "25m"
+              memory: "128Mi"
+            requests:
+              cpu: "25m"
+              memory: "128Mi"
+      containers:
+        - name: elasticsearch  # Removed quotes around container name
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1000
+          image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0  # Set your image here
+          ports:
+            - name: http
+              containerPort: 9200
+            - name: transport
+              containerPort: 9300
+          resources:
+            requests:
+              cpu: "100m"  # Set your CPU request
+              memory: "512Mi"  # Set your memory request
+            limits:
+              cpu: "200m"  # Set your CPU limit
+              memory: "1Gi"  # Set your memory limit
+          env:
+            - name: node.name
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: elasticsearch-storage
+              mountPath: /usr/share/elasticsearch/data  # Directory for Elasticsearch data
+      volumes:
+        - name: elasticsearch-storage
+          emptyDir: {}  # Use emptyDir for storage

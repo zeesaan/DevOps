@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-service  # More descriptive service name
+  namespace: elasticssearch     # Correct namespace
+  labels:
+    app: elasticsearch         # Label to match the app in StatefulSet or Deployment
+spec:
+  type: ClusterIP               # ClusterIP for internal communication within the cluster
+  selector:
+    app: elasticsearch          # Must match the labels defined in your StatefulSet or Deployment
+  ports:
+    - name: http
+      protocol: TCP
+      port: 9200                # Service port for HTTP requests to Elasticsearch
+      targetPort: 9200          # Forward traffic to the container on port 9200
+    - name: transport
+      protocol: TCP
+      port: 9300                # Service port for transport layer (communication between nodes)
+      targetPort: 9300          # Forward traffic to the container on port 9300
+    - name: metrics
+      protocol: TCP
+      port: 9114                # Service port for metrics (e.g., Prometheus, if supported)
+      targetPort: 9114          # Forward traffic to the container on port 9114 (ensure this is exposed in your Elasticsearch image)
