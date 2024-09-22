@@ -1,0 +1,18 @@
+- hosts:
+    - app-vm1.fra1.internal
+    - db-vm1.fra1.db
+    - web-vm1.fra1.web
+  tasks:
+    - name: Install ntpd
+      apt:
+        name: ntp
+        state: present
+
+    - name: Deploy custom ntpd.conf
+      copy:
+        src: /home/dnet/ntpd.conf  # Ensure this points to the actual file
+        dest: /etc/ntp.conf
+        owner: root
+        group: root
+        mode: '0644'
+

@@ -1,0 +1,10 @@
+- hosts:
+    - all
+  tasks:
+    - name: Configure logrotate cron job
+      cron:
+        name: "Run logrotate every 10 minutes between 2 AM and 4 AM"
+        minute: "*/10"
+        hour: "2-3"  # 2 AM to 3:59 AM
+        job: "/usr/sbin/logrotate /etc/logrotate.conf"
+        state: present
